@@ -44,8 +44,8 @@ contract EthDeliverer is Pausable, AccessControl {
         uint numRemainingPeriods;
         bool isApproved;
         uint numParticipants;
-        //mapping (uint => mapping(address => ParticipantStatus)) participants;
         ParticipantDetails[] participants;
+        //mapping (uint => mapping(address => ParticipantStatus)) participants;
     }
 
     struct CancelProposal {
@@ -61,14 +61,14 @@ contract EthDeliverer is Pausable, AccessControl {
       address payable insBeneficiary;
     }
 
-    uint numDeliveriesDetails;
-    uint numCancelProposals;
-    uint numInstallments;
+    uint public numDeliveriesDetails;
+    uint public numCancelProposals;
+    uint public numInstallments;
 
     Installments[] installments;
 
-    mapping (uint => Delivery) private deliveriesDetails;
-    mapping (uint => CancelProposal) private cancelProposals;
+    mapping (uint => Delivery) public deliveriesDetails;
+    mapping (uint => CancelProposal) public cancelProposals;
     mapping (address => uint) public pendingWithdrawals;
 
     event deliveryCreated(address indexed requester, uint requestId);
@@ -96,24 +96,25 @@ contract EthDeliverer is Pausable, AccessControl {
     }
 
     // How many months from now will start the
-    function createDeliveryRequest(uint _numMonthsToStart, uint _numPeriods, uint _numParticipants, address[] memory _participants, address payable _beneficiary)
+    function createDeliveryRequest(uint _numMonthsToStart, uint _numPeriods, uint _numParticipants, address[] memory _listParticipants, address payable _beneficiary)
         public
         payable
         whenNotPaused
         returns(uint requestId) {
 
-        require(msg.value > 0, "Value zeroe");
+        require(msg.value > 0 && msg.value <= 100, "Invalid ether amount");
         require(_numMonthsToStart > 0 && _numPeriods > 0, "Details missing");
         require(_numParticipants >= 2 && _numParticipants <= 10, "Invalid participants number");
 
         for (uint i = 0; i < _numParticipants; i++) {
-            require(_participants[i] != address(0), "Empty address");
+            require(_listParticipants[i] != address(0), "Empty address");
         }
 
-        requestId = numDeliveriesDetails++;
+        numDeliveriesDetails++;
+        requestId = numDeliveriesDetails;
         Delivery storage deli = deliveriesDetails[requestId];
 
-        deli.requester = msg.sender;
+        deli.requester = payable(msg.sender);
         deli.amountToSend = msg.value;
         deli.numInitialBlock = block.number + (_numMonthsToStart * BLOCKS_PER_MONTH);
         deli.nextBlockControl = deli.numInitialBlock;
@@ -124,17 +125,22 @@ contract EthDeliverer is Pausable, AccessControl {
         deli.beneficiary = _beneficiary;
 
         for (uint i = 0; i < _numParticipants; i++) {
-            deli.participants[i].participantAddress = _participants[i];
+            deli.participants.push();
+            deli.participants[i].participantAddress = _listParticipants[i];
             deli.participants[i].participantStatus = ParticipantStatus.PENDING;
-            _setupRole(PARTICIPANT_ROLE, msg.sender);
+            _setupRole(PARTICIPANT_ROLE, _listParticipants[i]);
         }
 
         _setupRole(CREATOR_ROLE, msg.sender);
         emit deliveryCreated(deli.requester, requestId);
     }
 
+    function getParticipantsDelivery(uint requestId) public view returns(ParticipantDetails[] memory listParticipants) {
+        listParticipants = deliveriesDetails[requestId].participants;
+    }
+
     // A participant approves its participation in a automation process. Once all the participants have done this, the automation is activated:
-    function approveParticipation(uint requestId) public onlyRole(PARTICIPANT_ROLE) returns(bool isParticipantApproved) {
+    function approveParticipation(uint requestId) public whenNotPaused onlyRole(PARTICIPANT_ROLE) returns(bool isParticipantApproved) {
         require(deliveriesDetails[requestId].amountToSend > 0, "Request ID not valid");
         require(!deliveriesDetails[requestId].isApproved, "Delivery is already approved");
 
@@ -165,8 +171,8 @@ contract EthDeliverer is Pausable, AccessControl {
     // Check that the delivery is not approved (is still a request)
     // Only the requester can cancel the delivery
     // Include the amount in the pendingWithdrawals map (Common Patterns - Withdrawal from Contracts)
-    function cancelDeliveryRequest(uint requestId) public onlyRole(CREATOR_ROLE) {
-        require(!deliveriesDetails[requestId].isApproved, "Delivery is already APPROVED. Cancel as such." );
+    function cancelDeliveryRequest(uint requestId) public whenNotPaused onlyRole(CREATOR_ROLE) {
+        require(!deliveriesDetails[requestId].isApproved, "Delivery is already APPROVED. Create cancel proposal." );
         require(deliveriesDetails[requestId].requester == msg.sender, "Only can be canceled by the requester");
 
         cancelDelivery(requestId);
@@ -174,14 +180,14 @@ contract EthDeliverer is Pausable, AccessControl {
 
     function cancelDelivery(uint requestId) internal {
         uint amount = deliveriesDetails[requestId].amountToSend;
-        pendingWithdrawals[ deliveriesDetails[requestId].requester ] += amount;
         deliveriesDetails[requestId].amountToSend = 0;
+        pendingWithdrawals[ deliveriesDetails[requestId].requester ] += amount;
 
         emit pendingWithdrawal(deliveriesDetails[requestId].requester, requestId, amount);
     }
 
     // Common Patterns - Withdrawal from Contracts
-    function withdraw() public payable {
+    function withdraw() public payable whenNotPaused {
         require(pendingWithdrawals[msg.sender] > 0, "No amount to be withdrawn");
 
         uint amount = pendingWithdrawals[msg.sender];
@@ -195,11 +201,13 @@ contract EthDeliverer is Pausable, AccessControl {
 
     //As the delivery has been already approved, it is necessary to create a proposal that have to be accepted by,
     //at least, 51% of participants
-    function createCancelProposalDeliveryApproved(uint requestId) public onlyRole(CREATOR_ROLE) returns(uint proposalId) {
+    function createCancelProposalDeliveryApproved(uint requestId) public whenNotPaused onlyRole(CREATOR_ROLE) returns(uint proposalId) {
         require(deliveriesDetails[requestId].isApproved, "Delivery is not approved." );
         require(deliveriesDetails[requestId].requester == msg.sender, "Only can be canceled by the requester");
 
-        proposalId = numCancelProposals++;
+        numCancelProposals++;
+        proposalId = numCancelProposals;
+
         CancelProposal storage prop = cancelProposals[proposalId];
         prop.deliveryId = requestId;
         prop.numParticipants = deliveriesDetails[requestId].numParticipants;
@@ -207,6 +215,7 @@ contract EthDeliverer is Pausable, AccessControl {
         prop.isAccepted = false;
 
         for (uint i = 0; i < deliveriesDetails[requestId].numParticipants; i++) {
+            prop.participants.push();
             prop.participants[i].participantAddress = deliveriesDetails[requestId].participants[i].participantAddress;
             prop.participants[i].participantStatus = ParticipantStatus.PENDING;
         }
@@ -216,10 +225,14 @@ contract EthDeliverer is Pausable, AccessControl {
         //....en todo caso, se volvera a poner la petición como pending, que es cuando se podrá cancelar
     }
 
+    function getParticipantsCancelProposal(uint proposalId) public view returns(ParticipantDetails[] memory listParticipants) {
+        listParticipants = cancelProposals[proposalId].participants;
+    }
+
     // A participant accepts on a proposal to cancel a previously approved delivery. Once more than half of the participants have accepted it, it is canceled:
-    function approveCancelProposal(uint proposalId) public onlyRole(PARTICIPANT_ROLE) returns(bool isProposalApproved) {
+    function approveCancelProposal(uint proposalId) public whenNotPaused onlyRole(PARTICIPANT_ROLE) returns(bool isProposalApproved) {
         require(cancelProposals[proposalId].numParticipants > 0, "Proposal ID not valid");
-        require(!cancelProposals[proposalId].isApproved, "Proposal is already approved");
+        require(!cancelProposals[proposalId].isAccepted, "Proposal is already approved");
 
         uint counterAccepted = 0;
 
@@ -251,7 +264,7 @@ contract EthDeliverer is Pausable, AccessControl {
         cancelDelivery(cancelProposals[proposalId].deliveryId);
     }
 
-    function deliveryAutomation() public {
+    function deliveryAutomation() public whenNotPaused {
 
         uint checkPoint = block.number;
 
@@ -268,7 +281,7 @@ contract EthDeliverer is Pausable, AccessControl {
                 }
                 installments[numInstallments].insBeneficiary = deliveriesDetails[ind].beneficiary;
 
-                deliveriesDetails[ind].amountToSend = deliveriesDetails[ind].amountToSend - installments[instInd].insAmount;
+                deliveriesDetails[ind].amountToSend = deliveriesDetails[ind].amountToSend - installments[numInstallments].insAmount;
                 deliveriesDetails[ind].numRemainingPeriods = deliveriesDetails[ind].numRemainingPeriods - 1;
                 deliveriesDetails[ind].nextBlockControl = deliveriesDetails[ind].nextBlockControl + BLOCKS_PER_MONTH;
             }
@@ -278,10 +291,13 @@ contract EthDeliverer is Pausable, AccessControl {
         transferInstallments();
     }
 
-    function transferInstallments() internal payable {
+    function transferInstallments() internal {
 
+      uint _tip;
+      uint _totalTip;
       uint _amount;
       address payable _beneficiary;
+      address payable _addressZero = payable(address(0));
 
       for (uint ind = 1; ind <= numInstallments; ind++) {
 
@@ -289,7 +305,12 @@ contract EthDeliverer is Pausable, AccessControl {
           _amount = installments[ind].insAmount;
           _beneficiary = installments[ind].insBeneficiary;
 
+          _tip = (_amount / 100);
+          _amount = _amount - _tip;
+          _totalTip += _tip;
+
           installments[ind].insAmount = 0;
+          installments[ind].insBeneficiary = _addressZero;
 
           _beneficiary.transfer(_amount);
 
@@ -297,6 +318,7 @@ contract EthDeliverer is Pausable, AccessControl {
         }
       }
       numInstallments = 0;
-      installments = [];
+
+      payable(msg.sender).transfer(_totalTip);
     }
 }
