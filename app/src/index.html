@@ -1,245 +1,159 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>MetaCoin | Truffle Webpack Demo w/ Frontend</title>
-  </head>
-  <style>
-    input {
-      display: block;
-      margin-bottom: 12px;
-    }
-    .head {
-      display: flex;
-      direction: row;
-    }
-    .head-card {
-      border: solid 1px black;
-      box-shadow: 5px 5px 3px grey;
-    }
-    .accordion {
-      background-color: #eee;
-      color: #444;
-      cursor: pointer;
-      padding: 18px;
-      width: 100%;
-      border: none;
-      text-align: left;
-      outline: none;
-      font-size: 15px;
-      transition: 0.4s;
-    }
+<html lang="en">
 
-    .active,
-    .accordion:hover {
-      background-color: #ccc;
-    }
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deferred Transfers</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
 
-    .panel {
-      padding: 0 18px;
-      background-color: white;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.2s ease-out;
-    }
-  </style>
-  <body>
-    <div class="head">
-      <div class="head-card">
-        <p>Address</p>
-        <p id="address">0x0000000000000000000000000000000000000000</p>
-      </div>
-      <div class="head-card">
-        <p>Message:</p>
-        <p id="message"></p>
-      </div>
-      <div class="head-card">
-        <button class="btn">Connect your wallet</button>
-      </div>
+<body>
+
+    <head>
+        <div class="title">
+            <h1>Deferred and Partial Transfers</h1>
+        </div>
+        <div class="head">
+            <div class="head-card w-30 centered">
+                <p>Address:&nbsp;</p>
+                <p id="address">0x0000000000000000000000000000000000000000</p>
+            </div>
+            <div class="head-card w-50">
+                <p>Message:&nbsp;</p>
+                <p class="less-size" id="message"></p>
+            </div>
+            <div class="head-card w-20 d-inline-flex">
+                <button class="btn-auto">Connect your wallet</button>
+            </div>
+        </div>
+    </head>
+
+    <div>
+        <button class="accordion">Create Deferred Transfers Request</button>
+        <div class="panel">
+            <p class="hint">
+                <b>Hint:</b> Create a request to send automatically partial transfers of the Ethers deposited in this application. The amount will be divided into the number of partial transfers.
+            </p>
+            <form>
+                <label for="amount">Amount</label>
+                <input type="number" name="amount" required />
+                <label for="months">Months to start:</label>
+                <input type="number" name="months" id="months" required />
+                <label for="transfers">Number of partial transfers:</label>
+                <input type="number" name="transfers" id="transfers" required />
+                <label for="transfers">Participants (at least two and up to a maximum of 10):</label>
+                <input type="text" class="participant" name="part1" placeholder="e.g. 0x0000000000000000000000000000000000000000" required />
+                <input type="text" class="participant" name="part2" placeholder="e.g. 0x0000000000000000000000000000000000000000" required />
+                <input type="text" class="participant" name="part3" placeholder="e.g. 0x0000000000000000000000000000000000000000" />
+                <input type="text" class="participant" name="part4" placeholder="e.g. 0x0000000000000000000000000000000000000000" />
+                <input type="text" class="participant" name="part5" placeholder="e.g. 0x0000000000000000000000000000000000000000" />
+                <input type="text" class="participant" name="part6" placeholder="e.g. 0x0000000000000000000000000000000000000000" />
+                <input type="text" class="participant" name="part7" placeholder="e.g. 0x0000000000000000000000000000000000000000" />
+                <input type="text" class="participant" name="part8" placeholder="e.g. 0x0000000000000000000000000000000000000000" />
+                <input type="text" class="participant" name="part9" placeholder="e.g. 0x0000000000000000000000000000000000000000" />
+                <input type="text" class="participant-last" name="part10" placeholder="e.g. 0x0000000000000000000000000000000000000000" />
+                <label for="beneficiary">Beneficiary address (address to which the Ethers will be sent to):</label>
+                <input type="text" name="beneficiary" id="beneficiary" placeholder="e.g. 0x0000000000000000000000000000000000000000" required />
+                <input class="btn" type="submit" value="Send" />
+            </form>
+        </div>
     </div>
 
     <div>
-      <button class="accordion">Create Deferred Transfers Request</button>
-      <div class="panel">
-        <p>
-          Hint: Create a request to send automatically partial transfers of the
-          Ethers deposited in this application. The amount will be divided into
-          the number of partial transfers.
-        </p>
-        <form>
-          <label for="amount">Amount</label>
-          <input type="number" name="amount" required />
-          <label for="months">Months to start:</label>
-          <input type="number" name="months" id="months" required />
-          <label for="transfers">Number of partial transfers:</label>
-          <input type="number" name="transfers" id="transfers" required />
-          <label for="transfers">
-            Participants: (at least two and up to a maximum of 10)
-          </label>
-          <input
-            type="text"
-            class="participant"
-            name="part1"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            required
-          />
-          <input
-            type="text"
-            class="participant"
-            name="part2"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            required
-          />
-          <input
-            type="text"
-            class="participant"
-            name="part3"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-          />
-          <input
-            type="text"
-            class="participant"
-            name="part4"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-          />
-          <input
-            type="text"
-            class="participant"
-            name="part5"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-          />
-          <input
-            type="text"
-            class="participant"
-            name="part6"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-          />
-          <input
-            type="text"
-            class="participant"
-            name="part7"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-          />
-          <input
-            type="text"
-            class="participant"
-            name="part8"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-          />
-          <input
-            type="text"
-            class="participant"
-            name="part9"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-          />
-          <input
-            type="text"
-            class="participant"
-            name="part10"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-          />
-          <label for="beneficiary">
-            Beneficiary address (address to which the Ethers will be sent to)
-          </label>
-          <input
-            type="text"
-            name="beneficiary"
-            id="beneficiary"
-            placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            required
-          />
-          <input class="btn" type="submit" value="Send" />
-        </form>
-      </div>
+        <button class="accordion">Approve Request (Only participants)</button>
+        <div class="panel">
+            <form>
+                <label for="request">Request ID:</label>
+                <input type="input" name="request" required />
+                <input class="btn" type="submit" value="Send" />
+            </form>
+        </div>
     </div>
 
     <div>
-      <button class="accordion">Approve Request (Only participants)</button>
-      <div class="panel">
-        <form>
-          <label for="request">Amount</label>
-          <input type="input" name="request" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
-      </div>
+        <button class="accordion">
+      Cancel Deferred Transfers Request (if not yet approved by all
+      participants)
+    </button>
+        <div class="panel">
+            <form>
+                <label for="request">Request ID:</label>
+                <input type="input" name="request" required />
+                <input class="btn" type="submit" value="Send" />
+            </form>
+        </div>
     </div>
 
     <div>
-      <button class="accordion">
-        Cancel Deferred Transfers Request (if not yet approved by all
-        participants)
-      </button>
-      <div class="panel">
-        <form>
-          <label for="request">Amount</label>
-          <input type="input" name="request" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
-      </div>
+        <button class="accordion">
+      Cancel Deferred Transfers Request (if not yet approved by all
+      participants)
+    </button>
+        <div class="panel">
+            <form>
+                <label for="request">Request ID:</label>
+                <input type="input" name="request" required />
+                <input class="btn" type="submit" value="Send" />
+            </form>
+        </div>
     </div>
 
     <div>
-      <button class="accordion">
-        Cancel Deferred Transfers Request (if not yet approved by all
-        participants)
-      </button>
-      <div class="panel">
-        <form>
-          <label for="request">Amount</label>
-          <input type="input" name="request" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
-      </div>
-    </div>
-
-    <div>
-      <button class="accordion">Withdrawal</button>
-      <div class="panel">
-        <p>Amount pending to withdrawal:</p>
-        <p id="withdrawal_amount">0.00</p>
-        <p>Eth</p>
+        <button class="accordion">Withdrawal</button>
+        <div class="panel withdrawal">
+            <p>Amount pending to withdrawal:</p>
+            <p id="withdrawal_amount">0.00</p>
+            <p>Eth</p>
+        </div>
         <button class="btn">Withdrawal</button>
-      </div>
     </div>
 
     <div>
-      <button class="accordion">
-        Create Cancel Proposal (If the request has been approved by all
-        participants)
-      </button>
-      <div class="panel">
-        <form>
-          <label for="request">Amount</label>
-          <input type="input" name="request" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
-      </div>
+        <button class="accordion">
+      Create Cancel Proposal (If the request has been approved by all
+      participants)
+    </button>
+        <p class="hint">
+            <b>Hint:</b> The proposal must be approved by at least 51% of the participants.
+        </p>
+        <div class="panel">
+            <form>
+                <label for="request">Request ID:</label>
+                <input type="input" name="request" required />
+                <input class="btn" type="submit" value="Send" />
+            </form>
+        </div>
     </div>
 
     <div>
-      <button class="accordion">
-        Approve Cancel Proposal (Only participants)
-      </button>
-      <div class="panel">
-        <form>
-          <label for="proposal">Amount</label>
-          <input type="input" name="proposal" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
-      </div>
+        <button class="accordion">
+      Approve Cancel Proposal (Only participants)
+    </button>
+        <div class="panel">
+            <form>
+                <label for="proposal">Proposal ID:</label>
+                <input type="input" name="proposal" required />
+                <input class="btn" type="submit" value="Send" />
+            </form>
+        </div>
     </div>
 
     <div>
-      <button class="accordion">Run Check Proccess</button>
-      <div class="panel">
-        <button class="btn">Run</button>
-      </div>
+        <button class="accordion">Run Check Proccess</button>
+        <p class="hint">
+            <b>Hint:</b> The sender will receive a 10% fee on all transfers made.
+        </p>
+        <div class="panel">
+            <button class="btn">Run</button>
+        </div>
     </div>
 
     <h1>MetaCoin — Example Truffle Dapp</h1>
     <p>
-      You have
-      <strong class="balance">loading...</strong>
-      META
+        You have
+        <strong class="balance">loading...</strong> META
     </p>
 
     <h1>Send MetaCoin</h1>
@@ -248,19 +162,15 @@
     <input type="text" id="amount" placeholder="e.g. 95" />
 
     <label for="receiver">To address:</label>
-    <input
-      type="text"
-      id="receiver"
-      placeholder="e.g. 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"
-    />
+    <input type="text" id="receiver" placeholder="e.g. 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae" />
 
     <button onclick="App.sendCoin()">Send MetaCoin</button>
 
     <p id="status"></p>
     <p>
-      <strong>Hint:</strong>
-      open the browser developer console to view any errors and warnings.
+        <strong>Hint:</strong> open the browser developer console to view any errors and warnings.
     </p>
     <!-- <script src="index.js"></script> -->
-  </body>
+</body>
+
 </html>

@@ -1,0 +1,118 @@
+body {
+    font-size: 15px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+input {
+    display: block;
+    margin-bottom: 12px;
+}
+
+.title {
+    display: block;
+    text-align: center;
+}
+
+.head {
+    display: flex;
+    direction: row;
+}
+
+.head p {
+    margin: 0;
+}
+
+.head-card {
+    border: solid 1px black;
+    padding: 0.5rem;
+}
+
+.w-20 {
+    width: 20%;
+}
+
+.w-30 {
+    width: 30%;
+}
+
+.w-50 {
+    width: 50%;
+}
+
+.less-size {
+    font-size: 0.8rem;
+}
+
+.hint {
+    font-size: 0.8rem;
+}
+
+.centered {
+    text-align: center;
+}
+
+.btn,
+.btn-auto {
+    margin: 0.8rem;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 1.2rem;
+    padding: 14px 28px;
+    border-radius: 12px;
+    box-shadow: 0.1rem 0.1rem 0.1rem 0 #000;
+    cursor: pointer;
+    font-size: 1rem;
+    transition-duration: 0.3s;
+    background-color: #4CAF50;
+    color: #fff;
+}
+
+.btn-auto {
+    margin: auto;
+}
+
+.btn:hover {
+    background-color: #3e8e41
+}
+
+.btn:active {
+    background-color: #3e8e41;
+    transform: scale(0.9);
+}
+
+.d-inline-flex {
+    display: inline-flex;
+}
+
+.participant {
+    margin-bottom: 2px;
+}
+
+.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    transition: 0.4s;
+}
+
+.active,
+.accordion:hover {
+    background-color: #ccc;
+}
+
+.panel {
+    padding: 0 18px;
+    background-color: white;
+    /*max-height: 0;*/
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}
+
+.withdrawal p {
+    display: inline-flex;
+}
