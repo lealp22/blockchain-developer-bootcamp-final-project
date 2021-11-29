@@ -42,10 +42,9 @@ const App = {
     balanceElement.innerHTML = balance;
   },
 
-  createRequest: async function(e) {
-    e.preventDefault();
-
-    console.log('createRequest', e);
+  createRequest: async function() {
+    //e.preventDefault();
+    //console.log('createRequest', e);
 
     const fields = document.querySelectorAll("#form1 input");
     console.log('fields->', fields);
@@ -101,6 +100,7 @@ const App = {
       }
     }
 
+    console.log(this.address);
     console.log(_amount);
     console.log(_numMonthsToStart);
     console.log(_numPeriods);
@@ -108,9 +108,12 @@ const App = {
     console.log(_listParticipants);
     console.log(_beneficiary);
 
+
     if (isValid) {
 
       this.setStatus("Initiating transaction... (please wait)");
+      let amountWei = Web3.utils.toWei(_amount, 'ether');
+      console.log('amountWei->', amountWei);
 
       const { createDeliveryRequest } = this.meta.methods;
 
@@ -121,7 +124,7 @@ const App = {
         _listParticipants,
         _beneficiary
       )
-      .send({ from: this.account }, 
+      .send({ from: this.account, value: amountWei }, 
         (error, transactionHash) => {
         if (error) {
             console.error("Error createDeliveryRequest: ", error);
@@ -153,32 +156,26 @@ const App = {
       const { deliveriesDetails } = this.meta.methods;
       console.log('deliveriesDetails->', deliveriesDetails);
 
-        let _resp = await deliveriesDetails(reqId.value).call();
-        console.log('_resp->', _resp);
+      let _resp = await deliveriesDetails(reqId.value).call();
+      console.log('_resp->', _resp);
 
-        await deliveriesDetails(reqId.value).call(function(error, response){
+      if (_resp) {
 
-        console.log('error->', error);
-        console.log('response->', response);
+        const { getParticipantsDelivery } = this.meta.methods;
 
-        if (error) {
-            showMessage(error);
-            console.error(error);
-        } else {
-            //Debug
-            showMessage(response);
-            console.log("Response isAdmin: ", response);
-        }
+        let _resp2 = await getParticipantsDelivery(reqId.value).call();
+        console.log('_resp->', _resp2);
 
-      }.bind(this));
+        document.getElementById("query-1").classList.remove("d-none");
 
-        // document.getElementById("query1").innerHTML = _resp.
-        // document.getElementById("query2").innerHTML = _resp.
-        // document.getElementById("query3").innerHTML = _resp.
-        // document.getElementById("query4").innerHTML = _resp.
-        // document.getElementById("query5").innerHTML = _resp.
-        // document.getElementById("query6").innerHTML = _resp.
-      
+        document.getElementById("query-11").innerHTML = _resp.amountToSend;
+        document.getElementById("query-12").innerHTML = _resp.numInitialBlock;
+        document.getElementById("query-14").innerHTML = _resp.numPeriods;
+        document.getElementById("query-15").innerHTML = _resp.numParticipants;
+        document.getElementById("query-16").innerHTML = _resp2.listParticipants;
+        document.getElementById("query-17").innerHTML = _resp.beneficiary
+        document.getElementById("query-18").innerHTML = (_resp.isApproved) ? "Approved" : "Pending approval";
+      }
     }
   },
 
