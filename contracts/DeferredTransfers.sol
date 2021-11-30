@@ -1,26 +1,30 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.5 <0.9.0;
+pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
- * @title DeferredTransfers
- * @dev Given an amount of ethers deposited in this contract, it will be sent in parts to a given address automatically.
- * It will be necessary the participation of between two and ten additional addresses so that they will be in charge of authorize any change proposal
- * related to the initially established distribution.
+ * @title Manage deferred partial transfers
+ * @author Jesús Leal
+ * @dev This contract has been developed for academic purposes
+ *      Import Open Zeppelin contracts Pausable.sol and AccessControl.sol
+ * @notice Given an amount of ethers deposited in this contract, it will be sent in parts to a given address automatically.
+ *         It will be necessary the participation of between two and ten additional addresses (participants) so that they will be in charge of authorize 
+ *         any change proposal related to the initially established distribution.
  */
 contract DeferredTransfers is Pausable, AccessControl {
 
-    /* Roles definition */
+    /// @dev Defines a constant value for PAUSER_ROLE
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    /// @dev Defines a constant value for CREATOR_ROLE
     bytes32 public constant CREATOR_ROLE = keccak256("CREATOR_ROLE");
+    /// @dev Defines a constant value for PARTICIPANT_ROLE
     bytes32 public constant PARTICIPANT_ROLE = keccak256("PARTICIPANT_ROLE");
 
 
-    /* Changed to 2 for testing purpose */
-    //uint public constant BLOCKS_PER_MONTH = 192000;
-    uint public constant BLOCKS_PER_MONTH = 2;
+    /// @dev Defines a constant with the number of blocks that are estimated to be generated in a month.
+    uint public constant BLOCKS_PER_MONTH = 192000;
 
     /**
      *  Partial transfers will be sent weekly
@@ -37,6 +41,7 @@ contract DeferredTransfers is Pausable, AccessControl {
         ParticipantStatus participantStatus;
     }
 
+    /// @dev Struct use to work with request details
     struct Request {
         address payable requester;
         address payable beneficiary;
@@ -50,6 +55,7 @@ contract DeferredTransfers is Pausable, AccessControl {
         ParticipantDetails[] participants;
     }
 
+    /// @dev Struct use to work with cancel proposal details
     struct CancelProposal {
         uint requestId;
         uint numParticipants;
@@ -58,19 +64,26 @@ contract DeferredTransfers is Pausable, AccessControl {
         bool isAccepted;
     }
 
+    /// @dev Struct use to work with partial tranfers
     struct PartialTransfer {
       uint partAmount;
       address payable partBeneficiary;
     }
 
+    /// @dev Counter for requests (associated to requestsDetails)
     uint public countRequests;
+    /// @dev Counter for cancel proposals (associated to cancelProposals)
     uint public countCancelProposals;
+    /// @dev Counter for partial transfers (associated to partialTransfers)
     uint public countPartialTransfers;
 
     PartialTransfer[] partialTransfers;
 
+    /// @dev Store request details
     mapping (uint => Request) public requestsDetails;
+    /// @dev Store cancel proposals
     mapping (uint => CancelProposal) public cancelProposals;
+    /// @dev Store pending withdrawals (from requests cancelled)
     mapping (address => uint) public pendingWithdrawals;
 
     event requestCreated(address indexed requester, uint requestId);
@@ -83,6 +96,8 @@ contract DeferredTransfers is Pausable, AccessControl {
     event proposalAccepted(uint indexed requestId, uint proposalId);
     event installmentSent(address indexed beneficiary, uint amount);
 
+    /// @notice Set the roles Default Admin (Not implemnted) and Pauser (Only address able to pause and unpause the contract)
+    ///         Initialize counters with value zeroe (for clarity)
     constructor() {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(PAUSER_ROLE, msg.sender);
@@ -90,15 +105,26 @@ contract DeferredTransfers is Pausable, AccessControl {
         countCancelProposals = 0;
     }
 
+    /// @notice Pause the contract (only address with PAUSER_ROLE)
     function pause() public onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
+    /// @notice Unpause the contract (only address with PAUSER_ROLE)
     function unpause() public onlyRole(PAUSER_ROLE) {
         _unpause();
     }
 
-    // How many months from now will start the
+    /** 
+     * @notice Create a request to create deferred and partial transfers
+     * @dev The automation process is made to execute a partial transfer every month (approximately: Every 'BLOCKS_PER_MONTH' blocks)
+     * @param _numMonthsToStart Number of months from now to start mading partial transfers (It is multiplied by BLOCKS_PER_MONTH to control the start)
+     * @param _numPeriods Number of partial transfers to be made
+     * @param _numParticipants Number of participants (related to _listParticipants)
+     * @param _listParticipants List of participants address
+     * @param _beneficiary Address that will received the Ether transfers
+     * @return requestId Request Id
+     */
     function createRequest(uint _numMonthsToStart, uint _numPeriods, uint _numParticipants, address[] memory _listParticipants, address payable _beneficiary)
         public
         payable
@@ -138,15 +164,29 @@ contract DeferredTransfers is Pausable, AccessControl {
         emit requestCreated(msg.sender, requestId);
     }
 
+    /**
+     * @notice Get the partipants list of a specific request
+     * @param requestId Request Id
+     * @return listParticipants Participants list
+     */
     function getParticipantsRequest(uint requestId) public view returns(ParticipantDetails[] memory listParticipants) {
         listParticipants = requestsDetails[requestId].participants;
     }
 
+    /**
+     * @notice Get the current block number (used to control the frequency of partial transfers)
+     * @return Current block
+     */
     function currentBlock() public view returns(uint) {
         return block.number;
     }
 
-    // A participant approves its participation in a automation process. Once all the participants have done this, the automation is activated:
+    /**
+     * @notice A participant approves its participation in a automation process (request). 
+     *         Once all the participants have done this, the automation is activated.
+     * @param requestId Request Id
+     * @return isParticipantApproved Indicate the approval was succesfully updated
+     */
     function approveParticipation(uint requestId) public whenNotPaused onlyRole(PARTICIPANT_ROLE) returns(bool isParticipantApproved) {
         require(requestsDetails[requestId].amountToSend > 0, "Request ID not valid");
         require(!requestsDetails[requestId].isApproved, "Request is already approved");
@@ -175,9 +215,13 @@ contract DeferredTransfers is Pausable, AccessControl {
         assert(counterApproved <= requestsDetails[requestId].numParticipants);
     }
 
-    // Check that the request is not approved (is still a request)
-    // Only the requester can cancel the request
-    // Include the amount in the pendingWithdrawals map (Common Patterns - Withdrawal from Contracts)
+    /**
+     * @notice Cancel a request (when is not yet approved).
+     * @dev Check that the request is not approved (is still a request)
+     *      Only the requester can cancel the request
+     *      Include the amount in the pendingWithdrawals map (Common Patterns - Withdrawal from Contracts)
+     * @param requestId Request Id
+     */
     function cancelRequest(uint requestId) public whenNotPaused onlyRole(CREATOR_ROLE) {
         require(!requestsDetails[requestId].isApproved, "Request is already APPROVED. Create cancel proposal." );
         require(requestsDetails[requestId].requester == msg.sender, "Only can be canceled by the requester");
@@ -185,6 +229,10 @@ contract DeferredTransfers is Pausable, AccessControl {
         _cancelRequest(requestId);
     }
 
+    /**
+     * @dev Internal function to cancel a request (reusable)
+     * @param requestId Request Id
+     */
     function _cancelRequest(uint requestId) internal {
         uint amount = requestsDetails[requestId].amountToSend;
         requestsDetails[requestId].amountToSend = 0;
@@ -193,7 +241,10 @@ contract DeferredTransfers is Pausable, AccessControl {
         emit pendingWithdrawal(requestsDetails[requestId].requester, requestId, amount);
     }
 
-    // Common Patterns - Withdrawal from Contracts
+    /**
+     * @notice Function to withdraw the amount of a request cancelled
+     * @dev Common Patterns - Withdrawal from Contracts
+     */
     function withdraw() public payable whenNotPaused {
         require(pendingWithdrawals[msg.sender] > 0, "No amount to be withdrawn");
 
@@ -206,12 +257,22 @@ contract DeferredTransfers is Pausable, AccessControl {
         emit withdrawalSent(msg.sender, amount);
     }
 
+    /**
+     * @notice Get the pending withdraw amount (if any)
+     * @return amount Pending withdraw amount
+     */
     function amountWithdraw() public view returns(uint amount) {
         amount = pendingWithdrawals[msg.sender];
     }
 
-    //As the request has been already approved, it is necessary to create a proposal that have to be accepted by,
-    //at least, 51% of participants
+
+    /**
+     * @notice Create a proposal to cancel a request that has been already approved
+     * @dev As the request has been already approved, it is necessary to create a proposal that have to be accepted by,
+     *      at least, 51% of participants
+     * @param requestId Request Id
+     * @return proposalId Proposal Id
+     */
     function createCancelProposalRequestApproved(uint requestId) public whenNotPaused onlyRole(CREATOR_ROLE) returns(uint proposalId) {
         require(requestsDetails[requestId].isApproved, "Request is not approved." );
         require(requestsDetails[requestId].requester == msg.sender, "Only can be canceled by the requester");
@@ -234,11 +295,21 @@ contract DeferredTransfers is Pausable, AccessControl {
         emit proposalCreated(msg.sender, proposalId, requestId);
     }
 
+    /**
+     * @notice Get the list of participants included in a proposal
+     * @param proposalId Proposal Id
+     * @return listParticipants Participants list
+     */
     function getParticipantsCancelProposal(uint proposalId) public view returns(ParticipantDetails[] memory listParticipants) {
         listParticipants = cancelProposals[proposalId].participants;
     }
 
-    // A participant accepts on a proposal to cancel a previously approved request. Once more than half of the participants have accepted it, it is canceled:
+    /**
+     * @notice A participant accepts on a proposal to cancel a previously approved request. 
+     *         Once more than half of the participants have accepted it, the related request is canceled.
+     * @param proposalId Proposal Id
+     * @return isProposalApproved Indicator whether it has the approval of more than 51%
+     */
     function approveCancelProposal(uint proposalId) public whenNotPaused onlyRole(PARTICIPANT_ROLE) returns(bool isProposalApproved) {
         require(cancelProposals[proposalId].numParticipants > 0, "Proposal ID not valid");
         require(!cancelProposals[proposalId].isAccepted, "Proposal is already approved");
@@ -273,6 +344,11 @@ contract DeferredTransfers is Pausable, AccessControl {
         _cancelRequest(cancelProposals[proposalId].requestId);
     }
 
+    /**
+     * @notice This process will check if any of the approved requests have reached the moment when a partial transfer can be made.
+     * @dev No transfers are made directly in this process. They are stored in the variable partialTransfers and then they are all made 
+     *      together in _sendPartialTransfers.
+     */
     function processAutomation() public whenNotPaused {
 
         uint checkPoint = block.number;
@@ -301,6 +377,9 @@ contract DeferredTransfers is Pausable, AccessControl {
         _sendPartialTransfers();
     }
 
+    /**
+     * @dev Internal function to made the partial tranfers stored in the variable partialTransfers all together.
+     */
     function _sendPartialTransfers() internal {
 
       uint _tip;
