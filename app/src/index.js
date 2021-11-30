@@ -232,6 +232,55 @@ const App = {
     }
   },
 
+  proposalDetails: async function() {
+
+    console.log('proposalDetails');
+    let propId = document.getElementById("propId");
+  
+    if (!propId.checkValidity()) {
+      propId.classList.add("invalid");
+      
+    } else {
+      propId.classList.remove("invalid");
+
+      this.setStatus("Getting the information... (please wait)");
+
+      const { cancelProposals } = this.meta.methods;
+      console.log('cancelProposals->', cancelProposals);
+
+      let _resp = await cancelProposals(propId.value).call();
+      
+      console.log('_resp->', _resp);
+      this.setStatus("Operation completed. No information found.");
+
+      if (_resp.numParticipants != "0") {
+
+        this.setStatus("Operation completed. Information found.");
+
+        const { getParticipantsCancelProposal } = this.meta.methods;
+
+        let _resp2 = await getParticipantsCancelProposal(propId.value).call();
+        console.log('_resp2->', _resp2);
+
+        let participants = "";
+
+        if (_resp2) {
+          for (let i = 0; i < _resp2.length; i++) {
+            participants = participants.concat(_resp2[i].participantAddress);
+            participants = participants.concat(_resp2[i].participantStatus == "1" ? " (Pending) ":" (Accepted) ");
+          }
+        }
+        document.getElementById("query-2").classList.remove("d-none");
+
+        document.getElementById("query-21").innerHTML = _resp.deliveryId;
+        document.getElementById("query-22").innerHTML = _resp.numParticipants;
+        document.getElementById("query-23").innerHTML = _resp.numParticipantsAccepted;
+        document.getElementById("query-24").innerHTML = participants;
+        document.getElementById("query-25").innerHTML = (_resp.isAccepted) ? "Accepted" : "Pending acceptance";
+      }
+    }
+  },
+
   approveParticipation: async function() {
     console.log('approveParticipation');
 

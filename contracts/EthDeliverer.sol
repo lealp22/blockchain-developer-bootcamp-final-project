@@ -223,10 +223,6 @@ contract EthDeliverer is Pausable, AccessControl {
             prop.participants[i].participantAddress = deliveriesDetails[requestId].participants[i].participantAddress;
             prop.participants[i].participantStatus = ParticipantStatus.PENDING;
         }
-
-        //....crear la propuesta con los mismo datos de Delivery pero reemplazando solo el nuevo valor
-        //....una vez aprobada la propuesta, los nuevos valores reemplazan los antiguos (salvo el requester y amount)
-        //....en todo caso, se volvera a poner la petición como pending, que es cuando se podrá cancelar
     }
 
     function getParticipantsCancelProposal(uint proposalId) public view returns(ParticipantDetails[] memory listParticipants) {

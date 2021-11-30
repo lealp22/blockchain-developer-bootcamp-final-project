@@ -346,7 +346,7 @@
 
     <div>
       <button class="accordion">
-        Cancel Deferred Transfers Request (if not yet approved by all
+        Cancel Deferred Transfers Request (Only requesters. If not yet approved by all
         participants)
       </button>
       <div class="panel">
@@ -370,7 +370,7 @@
 
     <div>
       <button class="accordion">
-        Create Cancel Proposal (If the request has been approved by all
+        Create Cancel Proposal (Only requesters. If the request has been approved by all
         participants)
       </button>
       <p class="hint">
@@ -383,6 +383,29 @@
           <input id="reqId4" type="input" name="request" required />
           <button class="btn" onclick="App.createCancelProposalDeliveryApproved()">Send</button>
         
+      </div>
+    </div>
+
+    <div>
+      <button class="accordion">Proposal Details</button>
+      <div class="panel">
+        <div>
+          <label for="request">Proposal ID:</label>
+          <input id="propId" type="input" name="request" required />
+          <button class="btn" onclick="App.proposalDetails()">Send</button>
+        </div>
+        <div class="query d-none" id="query-2">
+          <p class="query-labl">Request ID:</p>
+          <p class="query-fld" id="query-21"></p>
+          <p class="query-labl">Number of Participants:</p>
+          <p class="query-fld" id="query-22"></p>
+          <p class="query-labl">Number of Acceptances:</p>
+          <p class="query-fld" id="query-23"></p>
+          <p class="query-labl">Participants:</p>
+          <p class="query-fld" id="query-24"></p>
+          <p class="query-labl">Status:</p>
+          <p class="query-fld" id="query-25"></p>
+        </div>
       </div>
     </div>
 
