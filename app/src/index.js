@@ -6,10 +6,12 @@ const App = {
   account: null,
   meta: null,
   isConnected: false,
+  eventSet: null,
 
   start: async function() {
     const { web3 } = this;
 
+    this.eventSet = new Set();
     console.log('start');
 
     try {
@@ -33,6 +35,7 @@ const App = {
         this.amountWithdraw();
         this.setStatus('Wallet connected.');
         this.isConnected = true;
+        this.setEvents();
       } else {
         this.setStatus('Good! Wallet detected. Now you need to connect it.');
         this.isConnected = false;
@@ -439,6 +442,30 @@ const App = {
     status.innerHTML = message;
   },
 
+  
+  setEvents: async function() {
+    
+    //* 
+    //* Event deliveryCreated
+    //*
+    const eventdeliveryCreated = this.meta.events.deliveryCreated({ filter: {_sender: this.address}}, function(error, event){ 
+
+      console.log('Event->', event);
+      
+      if (!error) {
+        console.info("deliveryCreated hash: ", event.transactionHash);
+        if (!this.eventSet.has(event.transactionHash)) {
+  
+          this.eventSet.add(event.transactionHash);
+          showMessage("Confirmation request creation received");
+          alert("Request " + event.returnValues.requestId + " created.\n\n"+ "Tx hash:\n" + event.transactionHash);
+        }
+      }      
+
+    }.bind(this));
+  
+  
+  },
 };
 
 //*
