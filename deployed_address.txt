@@ -1,0 +1,3 @@
+> Network name    :    'rinkeby'
+> Network id      :      4
+> contract address:    0x25ebCd76A15F982de93780CDfbd764075FFCE317
