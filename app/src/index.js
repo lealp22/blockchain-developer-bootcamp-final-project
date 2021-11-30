@@ -123,20 +123,10 @@ const App = {
       }
     }
 
-    // console.log(this.address);
-    // console.log(_amount);
-    // console.log(_numMonthsToStart);
-    // console.log(_numPeriods);
-    // console.log(_numParticipants);
-    // console.log(_listParticipants);
-    // console.log(_beneficiary);
-
-
     if (isValid) {
 
       this.setStatus("Initiating transaction... (please wait)");
       let amountWei = Web3.utils.toWei(_amount, 'ether');
-      console.log('amountWei->', amountWei);
 
       const { createRequest } = this.meta.methods;
 
@@ -176,14 +166,12 @@ const App = {
   },
 
   requestDetails: async function() {
+    console.log('requestDetails');
 
     if (!this.isConnected) {
       this.setStatus("Error. Wallet not connected!");
       return null;
     }
-
-    console.log('requestDetails');
-    console.log(this.isRequestValid("reqId1"));
 
     let reqId = document.getElementById("reqId1");
 
@@ -195,11 +183,9 @@ const App = {
       this.setStatus("Getting the information... (please wait)");
 
       const { requestsDetails, getParticipantsRequest, currentBlock } = this.meta.methods;
-      console.log('requestsDetails->', requestsDetails);
 
       let _resp = await requestsDetails(reqId.value).call();
       
-      console.log('_resp->', _resp);
       this.setStatus("Operation completed. No information found.");
 
       if (_resp.numPeriods != "0") {
@@ -211,13 +197,8 @@ const App = {
         status = (_resp.amountToSend == "0") ? "Cancelled" : status;
 
         let _resp2 = await getParticipantsRequest(reqId.value).call();
-        console.log('_resp2->', _resp2);
-
         let _resp3 = await currentBlock().call();
-        console.log('_resp3->', _resp3);
-
         let initBlock = `${_resp.numInitialBlock} (Current: ${_resp3})`;
-
         let participants = "";
 
         if (_resp2) {
@@ -240,13 +221,13 @@ const App = {
   },
 
   proposalDetails: async function() {
+    console.log('proposalDetails');
 
     if (!this.isConnected) {
       this.setStatus("Error. Wallet not connected!");
       return null;
     }
 
-    console.log('proposalDetails');
     let propId = document.getElementById("propId");
   
     if (!propId.checkValidity()) {
@@ -258,20 +239,15 @@ const App = {
       this.setStatus("Getting the information... (please wait)");
 
       const { cancelProposals, getParticipantsCancelProposal } = this.meta.methods;
-      console.log('cancelProposals->', cancelProposals);
 
       let _resp = await cancelProposals(propId.value).call();
       
-      console.log('_resp+->', _resp);
       this.setStatus("Operation completed. No information found.");
 
       if (_resp.numParticipants != "0") {
 
         this.setStatus("Operation completed. Information found.");
-
         let _resp2 = await getParticipantsCancelProposal(propId.value).call();
-        console.log('_resp2+->', _resp2);
-
         let participants = "";
 
         if (_resp2) {
@@ -302,7 +278,6 @@ const App = {
     const request = this.isRequestValid("reqId2");
 
     if (request) {
-      console.log("Request valid->", request);
 
       const { approveParticipation } = this.meta.methods;
       await approveParticipation(request).send({ from: this.account }, 
@@ -332,8 +307,6 @@ const App = {
     const request = this.isRequestValid("reqId3");
 
     if (request) {
-      console.log("Request valid");
-
       const { cancelRequest } = this.meta.methods;
       await cancelRequest(request).send({ from: this.account }, 
       (error, transactionHash) => {
@@ -387,8 +360,6 @@ const App = {
     const request = this.isRequestValid("reqId4");
 
     if (request) {
-      console.log("Request valid");
-
       const { createCancelProposalRequestApproved } = this.meta.methods;
       await createCancelProposalRequestApproved(request).send({ from: this.account }, 
       (error, transactionHash) => {
@@ -476,8 +447,6 @@ const App = {
     //*
     const eventRequestCreated = this.meta.events.requestCreated({ filter: {_sender: this.address}}, function(error, event){ 
 
-      console.log('Event->', event);
-      
       if (!error) {
         console.info("requestCreated hash: ", event.transactionHash);
         if (!this.eventSet.has(event.transactionHash)) {
@@ -495,8 +464,6 @@ const App = {
     //*
     const eventParticipantApproved = this.meta.events.participantApproved({ filter: {_sender: this.address}}, function(error, event){ 
 
-      console.log('Event->', event);
-      
       if (!error) {
         console.info("participantApproved hash: ", event.transactionHash);
         if (!this.eventSet.has(event.transactionHash)) {
@@ -513,8 +480,6 @@ const App = {
     //* Event requestApproved
     //*
     const eventRequestApproved = this.meta.events.requestApproved({ filter: {_sender: this.address}}, function(error, event){ 
-
-      console.log('Event->', event);
       
       if (!error) {
         console.info("requestApproved hash: ", event.transactionHash);
@@ -532,8 +497,6 @@ const App = {
     //* Event pendingWithdrawal
     //*
     const eventPendingWithdrawal = this.meta.events.pendingWithdrawal({ filter: {_sender: this.address}}, function(error, event){ 
-
-      console.log('Event->', event);
       
       if (!error) {
         console.info("pendingWithdrawal hash: ", event.transactionHash);
@@ -552,8 +515,6 @@ const App = {
     //* Event withdrawalSent
     //*
     const eventWithdrawalSent = this.meta.events.withdrawalSent({ filter: {_sender: this.address}}, function(error, event){ 
-
-      console.log('Event->', event);
       
       if (!error) {
         console.info("withdrawalSent hash: ", event.transactionHash);
@@ -573,8 +534,6 @@ const App = {
     //*
     const eventProposalCreated = this.meta.events.proposalCreated({ filter: {_sender: this.address}}, function(error, event){ 
 
-      console.log('Event->', event);
-      
       if (!error) {
         console.info("proposalCreated hash: ", event.transactionHash);
         if (!this.eventSet.has(event.transactionHash)) {
@@ -591,8 +550,6 @@ const App = {
     //* Event participantProposalAccepted
     //*
     const eventParticipantProposalAccepted = this.meta.events.participantProposalAccepted({ filter: {_sender: this.address}}, function(error, event){ 
-
-      console.log('Event->', event);
       
       if (!error) {
         console.info("participantProposalAccepted hash: ", event.transactionHash);
@@ -610,8 +567,6 @@ const App = {
     //* Event proposalAccepted
     //*
     const eventProposalAccepted = this.meta.events.proposalAccepted({ filter: {_sender: this.address}}, function(error, event){ 
-
-      console.log('Event->', event);
       
       if (!error) {
         console.info("proposalAccepted hash: ", event.transactionHash);
@@ -647,13 +602,11 @@ window.addEventListener("load", function() {
     //showMessage('Good! Wallet detected. Now you need to connect it.');
     
     const btnConnect = document.getElementById('btn-connect');
-    console.log(btnConnect);
     
     btnConnect.onclick = async () => {
       console.log('btnConnect.onclick');
       const res = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      console.log('Res->', res);
-    
+     
       if (res) {
         document.getElementById('address').innerHTML = res[0];
         App.start();

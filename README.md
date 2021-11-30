@@ -26,6 +26,51 @@ Some services could solve this, such as Keepers of ChainLink, but it is necessar
 
 For this exercise, the processAutomation function has been included so that it can be called by anyone and, in return, the caller will get 1% of all transfers that are made.
 
+## Directory structure ##
+
+```bash
+|_📁 app
+  |_📁 dist
+  |_📁 src
+    📝 index.html
+    📝 index.js
+|_📁 build
+  |_📁 contracts
+|_📁 contracts
+  📝 DeferredTransfers.sol
+  📝 Migrations.sol
+|_📁 migrations
+  📝 1_initial_migration.js
+  📝 2_deploy_contracts.js
+|_📁 test
+```
+
 # Basic Smart Contract Functions
 
 You can find them here: [smart-contract-functions.md](./smart-contract-functions.md)
+
+# Information related to the Smart Contract **DeferredTransfers.sol**:
+
+
+- [Avoiding Common Attacks](./avoiding_common_attacks.md)
+- [Design Pattern Decisions](./design_pattern_decisions.md)
+
+### Directory structure ###
+
+```bash
+|_📁 app
+  |_📁 dist
+  |_📁 src
+    📝 index.html
+    📝 index.js
+|_📁 build
+  |_📁 contracts
+|_📁 contracts
+  📝 DeferredTransfers.sol
+  📝 Migrations.sol
+|_📁 migrations
+  📝 1_initial_migration.js
+  📝 2_deploy_contracts.js
+|_📁 test
+```
+Public Ethereum Address: 0xE838B9f35692c09500Db96a32D7faAA64f5DDEe2

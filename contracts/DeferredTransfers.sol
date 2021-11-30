@@ -174,6 +174,17 @@ contract DeferredTransfers is Pausable, AccessControl {
     }
 
     /**
+     * @notice Get the details of a specific request
+     * @param _requestId Request Id
+     * @return Struct Request Request details
+     */
+    function getRequestsDetails(uint _requestId) public view returns(Request memory) {
+        require(_requestId > 0 && _requestId <= countRequests);
+        
+        return requestsDetails[_requestId];
+    }
+
+    /**
      * @notice Get the current block number (used to control the frequency of partial transfers)
      * @return Current block
      */
@@ -245,7 +256,7 @@ contract DeferredTransfers is Pausable, AccessControl {
      * @notice Function to withdraw the amount of a request cancelled
      * @dev Common Patterns - Withdrawal from Contracts
      */
-    function withdraw() public payable whenNotPaused {
+    function withdraw() public payable whenNotPaused onlyRole(CREATOR_ROLE) {
         require(pendingWithdrawals[msg.sender] > 0, "No amount to be withdrawn");
 
         uint amount = pendingWithdrawals[msg.sender];
