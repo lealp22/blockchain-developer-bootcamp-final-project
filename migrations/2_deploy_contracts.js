@@ -1,5 +1,5 @@
-const EthDeliverer = artifacts.require('./EthDeliverer.sol');
+const DeferredTransfers = artifacts.require('./DeferredTransfers.sol');
 
 module.exports = function(deployer) {
-    deployer.deploy(EthDeliverer);
+    deployer.deploy(DeferredTransfers);
 };

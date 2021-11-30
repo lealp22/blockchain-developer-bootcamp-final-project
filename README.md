@@ -24,6 +24,8 @@ The main problem we face is the need for a trigger to execute the function in ch
 
 Some services could solve this, such as Keepers of ChainLink, but it is necessary to look into it more deeply.
 
+For this exercise, the processAutomation function has been included so that it can be called by anyone and, in return, the caller will get 1% of all transfers that are made.
+
 # Basic Smart Contract Functions
 
 You can find them here: [smart-contract-functions.md](./smart-contract-functions.md)

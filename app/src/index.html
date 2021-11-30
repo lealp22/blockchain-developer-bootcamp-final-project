@@ -353,7 +353,7 @@
         
           <label for="request">Request ID:</label>
           <input id="reqId3" type="input" name="request" required />
-          <button class="btn" onclick="App.cancelDeliveryRequest()">Send</button>
+          <button class="btn" onclick="App.cancelRequest()">Send</button>
 
       </div>
     </div>
@@ -381,7 +381,7 @@
         
           <label for="request">Request ID:</label>
           <input id="reqId4" type="input" name="request" required />
-          <button class="btn" onclick="App.createCancelProposalDeliveryApproved()">Send</button>
+          <button class="btn" onclick="App.createCancelProposalRequestApproved()">Send</button>
         
       </div>
     </div>
@@ -427,7 +427,7 @@
         The sender will receive a 10% fee on all transfers made.
       </p>
       <div class="panel">
-        <button class="btn" onclick="App.deliveryAutomation()">Run</button>
+        <button class="btn" onclick="App.processAutomation()">Run</button>
       </div>
     </div>
 

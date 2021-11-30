@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import ethDelivererArtifact from "../../build/contracts/EthDeliverer.json";
+import contractArtifact from "../../build/contracts/DeferredTransfers.json";
 
 const App = {
   web3: null,
@@ -17,9 +17,9 @@ const App = {
     try {
       // get contract instance
       const networkId = await web3.eth.net.getId();
-      const deployedNetwork = ethDelivererArtifact.networks[networkId];
+      const deployedNetwork = contractArtifact.networks[networkId];
       this.meta = new web3.eth.Contract(
-        ethDelivererArtifact.abi,
+        contractArtifact.abi,
         deployedNetwork.address,
       );
 
@@ -62,8 +62,6 @@ const App = {
   },
 
   createRequest: async function() {
-    //e.preventDefault();
-    //console.log('createRequest', e);
 
     if (!this.isConnected) {
       this.setStatus("Error. Wallet not connected!");
@@ -72,7 +70,7 @@ const App = {
 
     const fields = document.querySelectorAll("#form1 input");
     console.log('fields->', fields);
-    console.log('this.account->', this.account);
+
     let isValid = true;
     let _amount = 0;
     let _numMonthsToStart = 0;
@@ -125,13 +123,13 @@ const App = {
       }
     }
 
-    console.log(this.address);
-    console.log(_amount);
-    console.log(_numMonthsToStart);
-    console.log(_numPeriods);
-    console.log(_numParticipants);
-    console.log(_listParticipants);
-    console.log(_beneficiary);
+    // console.log(this.address);
+    // console.log(_amount);
+    // console.log(_numMonthsToStart);
+    // console.log(_numPeriods);
+    // console.log(_numParticipants);
+    // console.log(_listParticipants);
+    // console.log(_beneficiary);
 
 
     if (isValid) {
@@ -140,9 +138,9 @@ const App = {
       let amountWei = Web3.utils.toWei(_amount, 'ether');
       console.log('amountWei->', amountWei);
 
-      const { createDeliveryRequest } = this.meta.methods;
+      const { createRequest } = this.meta.methods;
 
-      await createDeliveryRequest(
+      await createRequest(
         _numMonthsToStart,
         _numPeriods,
         _numParticipants,
@@ -152,7 +150,7 @@ const App = {
       .send({ from: this.account, value: amountWei }, 
         (error, transactionHash) => {
         if (error) {
-            console.error("Error createDeliveryRequest: ", error);
+            console.error("Error createRequest: ", error);
             showMessage("Error. Transaction not completed");
             alert("Error. Transaction not completed.");
         } else {
@@ -178,10 +176,13 @@ const App = {
   },
 
   requestDetails: async function() {
-    //e.preventDefault();
+
+    if (!this.isConnected) {
+      this.setStatus("Error. Wallet not connected!");
+      return null;
+    }
 
     console.log('requestDetails');
-
     console.log(this.isRequestValid("reqId1"));
 
     let reqId = document.getElementById("reqId1");
@@ -193,10 +194,10 @@ const App = {
 
       this.setStatus("Getting the information... (please wait)");
 
-      const { deliveriesDetails } = this.meta.methods;
-      console.log('deliveriesDetails->', deliveriesDetails);
+      const { requestsDetails, getParticipantsRequest, currentBlock } = this.meta.methods;
+      console.log('requestsDetails->', requestsDetails);
 
-      let _resp = await deliveriesDetails(reqId.value).call();
+      let _resp = await requestsDetails(reqId.value).call();
       
       console.log('_resp->', _resp);
       this.setStatus("Operation completed. No information found.");
@@ -209,10 +210,13 @@ const App = {
         let status = (_resp.isApproved) ? "Approved" : "Pending approval";
         status = (_resp.amountToSend == "0") ? "Cancelled" : status;
 
-        const { getParticipantsDelivery } = this.meta.methods;
-
-        let _resp2 = await getParticipantsDelivery(reqId.value).call();
+        let _resp2 = await getParticipantsRequest(reqId.value).call();
         console.log('_resp2->', _resp2);
+
+        let _resp3 = await currentBlock().call();
+        console.log('_resp3->', _resp3);
+
+        let initBlock = `${_resp.numInitialBlock} (Current: ${_resp3})`;
 
         let participants = "";
 
@@ -225,7 +229,7 @@ const App = {
         document.getElementById("query-1").classList.remove("d-none");
 
         document.getElementById("query-11").innerHTML = ethAmount + " Eth";
-        document.getElementById("query-12").innerHTML = _resp.numInitialBlock;
+        document.getElementById("query-12").innerHTML = initBlock;
         document.getElementById("query-14").innerHTML = _resp.numPeriods;
         document.getElementById("query-15").innerHTML = _resp.numParticipants;
         document.getElementById("query-16").innerHTML = participants;
@@ -236,6 +240,11 @@ const App = {
   },
 
   proposalDetails: async function() {
+
+    if (!this.isConnected) {
+      this.setStatus("Error. Wallet not connected!");
+      return null;
+    }
 
     console.log('proposalDetails');
     let propId = document.getElementById("propId");
@@ -248,22 +257,20 @@ const App = {
 
       this.setStatus("Getting the information... (please wait)");
 
-      const { cancelProposals } = this.meta.methods;
+      const { cancelProposals, getParticipantsCancelProposal } = this.meta.methods;
       console.log('cancelProposals->', cancelProposals);
 
       let _resp = await cancelProposals(propId.value).call();
       
-      console.log('_resp->', _resp);
+      console.log('_resp+->', _resp);
       this.setStatus("Operation completed. No information found.");
 
       if (_resp.numParticipants != "0") {
 
         this.setStatus("Operation completed. Information found.");
 
-        const { getParticipantsCancelProposal } = this.meta.methods;
-
         let _resp2 = await getParticipantsCancelProposal(propId.value).call();
-        console.log('_resp2->', _resp2);
+        console.log('_resp2+->', _resp2);
 
         let participants = "";
 
@@ -275,7 +282,7 @@ const App = {
         }
         document.getElementById("query-2").classList.remove("d-none");
 
-        document.getElementById("query-21").innerHTML = _resp.deliveryId;
+        document.getElementById("query-21").innerHTML = _resp.requestId;
         document.getElementById("query-22").innerHTML = _resp.numParticipants;
         document.getElementById("query-23").innerHTML = _resp.numParticipantsAccepted;
         document.getElementById("query-24").innerHTML = participants;
@@ -286,6 +293,11 @@ const App = {
 
   approveParticipation: async function() {
     console.log('approveParticipation');
+
+    if (!this.isConnected) {
+      this.setStatus("Error. Wallet not connected!");
+      return null;
+    }
 
     const request = this.isRequestValid("reqId2");
 
@@ -309,19 +321,24 @@ const App = {
 
   },
 
-  cancelDeliveryRequest: async function() {
-    console.log('cancelDeliveryRequest');
+  cancelRequest: async function() {
+    console.log('cancelRequest');
+
+    if (!this.isConnected) {
+      this.setStatus("Error. Wallet not connected!");
+      return null;
+    }
 
     const request = this.isRequestValid("reqId3");
 
     if (request) {
       console.log("Request valid");
 
-      const { cancelDeliveryRequest } = this.meta.methods;
-      await cancelDeliveryRequest(request).send({ from: this.account }, 
+      const { cancelRequest } = this.meta.methods;
+      await cancelRequest(request).send({ from: this.account }, 
       (error, transactionHash) => {
         if (error) {
-            console.error("Error cancelDeliveryRequest: ", error);
+            console.error("Error cancelRequest: ", error);
             showMessage("Error. Transaction not completed");
             alert("Error. Transaction not completed.");
         } else {
@@ -334,6 +351,11 @@ const App = {
 
   withdraw: async function() {
     console.log('withdraw');
+
+    if (!this.isConnected) {
+      this.setStatus("Error. Wallet not connected!");
+      return null;
+    }
 
     this.setStatus("Initiating transaction... (please wait)");
 
@@ -354,19 +376,24 @@ const App = {
 
   },
 
-  createCancelProposalDeliveryApproved: async function() {
-    console.log('createCancelProposalDeliveryApproved');
+  createCancelProposalRequestApproved: async function() {
+    console.log('createCancelProposalRequestApproved');
+
+    if (!this.isConnected) {
+      this.setStatus("Error. Wallet not connected!");
+      return null;
+    }
 
     const request = this.isRequestValid("reqId4");
 
     if (request) {
       console.log("Request valid");
 
-      const { createCancelProposalDeliveryApproved } = this.meta.methods;
-      await createCancelProposalDeliveryApproved(request).send({ from: this.account }, 
+      const { createCancelProposalRequestApproved } = this.meta.methods;
+      await createCancelProposalRequestApproved(request).send({ from: this.account }, 
       (error, transactionHash) => {
         if (error) {
-            console.error("Error createCancelProposalDeliveryApproved: ", error);
+            console.error("Error createCancelProposalRequestApproved: ", error);
             showMessage("Error. Transaction not completed");
             alert("Error. Transaction not completed.");
         } else {
@@ -379,6 +406,11 @@ const App = {
 
   approveCancelProposal: async function() {
     console.log('approveCancelProposal');
+
+    if (!this.isConnected) {
+      this.setStatus("Error. Wallet not connected!");
+      return null;
+    }
 
     let propId = document.getElementById("proposal");
   
@@ -404,17 +436,22 @@ const App = {
     }
   },
 
-  deliveryAutomation: async function() {
-    console.log('deliveryAutomation');
+  processAutomation: async function() {
+    console.log('processAutomation');
+
+    if (!this.isConnected) {
+      this.setStatus("Error. Wallet not connected!");
+      return null;
+    }
 
     this.setStatus("Initiating transaction... (please wait)");
 
-    const { deliveryAutomation } = this.meta.methods;
+    const { processAutomation } = this.meta.methods;
 
-    await deliveryAutomation().send({ from: this.account }, 
+    await processAutomation().send({ from: this.account }, 
       (error, transactionHash) => {
       if (error) {
-          console.error("Error deliveryAutomation: ", error);
+          console.error("Error processAutomation: ", error);
           showMessage("Error. Transaction not completed");
           alert("Error. Transaction not completed.");
       } else {
@@ -424,47 +461,170 @@ const App = {
     });
   },
 
-  sendCoin: async function() {
-    const amount = parseInt(document.getElementById("amount").value);
-    const receiver = document.getElementById("receiver").value;
-
-    this.setStatus("Initiating transaction... (please wait)");
-
-    const { sendCoin } = this.meta.methods;
-
-    await sendCoin(receiver, amount).send({ from: this.account });
-
-    this.setStatus("Transaction complete!");
-  },
-
   setStatus: function(message) {
     const status = document.getElementById("status");
     status.innerHTML = message;
   },
 
-  
+  //
+  // Events
+  //
   setEvents: async function() {
     
     //* 
-    //* Event deliveryCreated
+    //* Event requestCreated
     //*
-    const eventdeliveryCreated = this.meta.events.deliveryCreated({ filter: {_sender: this.address}}, function(error, event){ 
+    const eventRequestCreated = this.meta.events.requestCreated({ filter: {_sender: this.address}}, function(error, event){ 
 
       console.log('Event->', event);
       
       if (!error) {
-        console.info("deliveryCreated hash: ", event.transactionHash);
+        console.info("requestCreated hash: ", event.transactionHash);
         if (!this.eventSet.has(event.transactionHash)) {
   
           this.eventSet.add(event.transactionHash);
-          showMessage("Confirmation request creation received");
+          showMessage("Request " + event.returnValues.requestId + " created");
           alert("Request " + event.returnValues.requestId + " created.\n\n"+ "Tx hash:\n" + event.transactionHash);
         }
       }      
 
     }.bind(this));
+
+    //* 
+    //* Event participantApproved
+    //*
+    const eventParticipantApproved = this.meta.events.participantApproved({ filter: {_sender: this.address}}, function(error, event){ 
+
+      console.log('Event->', event);
+      
+      if (!error) {
+        console.info("participantApproved hash: ", event.transactionHash);
+        if (!this.eventSet.has(event.transactionHash)) {
   
+          this.eventSet.add(event.transactionHash);
+          showMessage("Confirmation participant approval received. Request ID: " + event.returnValues.requestId);
+          alert("Participant " + event.returnValues.participant + " has approved Request ID " + event.returnValues.requestId + ".\n\n"+ "Tx hash:\n" + event.transactionHash);
+        }
+      }      
+
+    }.bind(this));
+
+    //* 
+    //* Event requestApproved
+    //*
+    const eventRequestApproved = this.meta.events.requestApproved({ filter: {_sender: this.address}}, function(error, event){ 
+
+      console.log('Event->', event);
+      
+      if (!error) {
+        console.info("requestApproved hash: ", event.transactionHash);
+        if (!this.eventSet.has(event.transactionHash)) {
   
+          this.eventSet.add(event.transactionHash);
+          showMessage("Request ID: " + event.returnValues.requestId + "has been approved.");
+          alert("Request ID " + event.returnValues.requestId +" has been approved.\n\n" + "Tx hash:\n" + event.transactionHash);
+        }
+      }      
+
+    }.bind(this));
+
+    //* 
+    //* Event pendingWithdrawal
+    //*
+    const eventPendingWithdrawal = this.meta.events.pendingWithdrawal({ filter: {_sender: this.address}}, function(error, event){ 
+
+      console.log('Event->', event);
+      
+      if (!error) {
+        console.info("pendingWithdrawal hash: ", event.transactionHash);
+        if (!this.eventSet.has(event.transactionHash)) {
+  
+          this.eventSet.add(event.transactionHash);
+          let _amount = Web3.utils.fromWei(event.returnValues.amount, "ether")
+          showMessage("The requester has a withdrawal pending for " + _amount +" Eth.");
+          alert("The requester has a withdrawal pending for " + _amount +" Eth.\n\n" + "Tx hash:\n" + event.transactionHash);
+        }
+      }      
+
+    }.bind(this));
+
+    //* 
+    //* Event withdrawalSent
+    //*
+    const eventWithdrawalSent = this.meta.events.withdrawalSent({ filter: {_sender: this.address}}, function(error, event){ 
+
+      console.log('Event->', event);
+      
+      if (!error) {
+        console.info("withdrawalSent hash: ", event.transactionHash);
+        if (!this.eventSet.has(event.transactionHash)) {
+  
+          this.eventSet.add(event.transactionHash);
+          let _amount = Web3.utils.fromWei(event.returnValues.amount, "ether")
+          showMessage("Withdrawal completed (" + _amount + " Eth).");
+          alert("Withdrawal completed (" + _amount +" Eth).\n\n" + "Tx hash:\n" + event.transactionHash);
+        }
+      }      
+
+    }.bind(this));
+  
+    //* 
+    //* Event proposalCreated
+    //*
+    const eventProposalCreated = this.meta.events.proposalCreated({ filter: {_sender: this.address}}, function(error, event){ 
+
+      console.log('Event->', event);
+      
+      if (!error) {
+        console.info("proposalCreated hash: ", event.transactionHash);
+        if (!this.eventSet.has(event.transactionHash)) {
+  
+          this.eventSet.add(event.transactionHash);
+          showMessage("Proposal " + event.returnValues.proposalId + " created");
+          alert("Proposal " + event.returnValues.proposalId + " created.\n\n"+ "Tx hash:\n" + event.transactionHash);
+        }
+      }      
+
+    }.bind(this));
+
+    //* 
+    //* Event participantProposalAccepted
+    //*
+    const eventParticipantProposalAccepted = this.meta.events.participantProposalAccepted({ filter: {_sender: this.address}}, function(error, event){ 
+
+      console.log('Event->', event);
+      
+      if (!error) {
+        console.info("participantProposalAccepted hash: ", event.transactionHash);
+        if (!this.eventSet.has(event.transactionHash)) {
+  
+          this.eventSet.add(event.transactionHash);
+          showMessage("Confirmation participant approval received. Proposal ID: " + event.returnValues.proposalId);
+          alert("Participant " + event.returnValues.participant + " has accepted Proposal ID " + event.returnValues.proposalId + ".\n\n"+ "Tx hash:\n" + event.transactionHash);
+        }
+      }      
+
+    }.bind(this));
+  
+    //* 
+    //* Event proposalAccepted
+    //*
+    const eventProposalAccepted = this.meta.events.proposalAccepted({ filter: {_sender: this.address}}, function(error, event){ 
+
+      console.log('Event->', event);
+      
+      if (!error) {
+        console.info("proposalAccepted hash: ", event.transactionHash);
+        if (!this.eventSet.has(event.transactionHash)) {
+  
+          this.eventSet.add(event.transactionHash);
+          showMessage("Proposal ID: " + event.returnValues.proposalId + "has been approved.");
+          alert("Proposal ID " + event.returnValues.proposalId +" has been approved.\n\n" + "Tx hash:\n" + event.transactionHash);
+        }
+      }      
+
+    }.bind(this));
+
   },
 };
 
