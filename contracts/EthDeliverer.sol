@@ -102,7 +102,7 @@ contract EthDeliverer is Pausable, AccessControl {
         whenNotPaused
         returns(uint requestId) {
 
-        require(msg.value > 0 && msg.value <= 100, "Invalid ether amount");
+        require(msg.value > 0, "Ether amount must to be greater than zero.");
         require(_numMonthsToStart > 0 && _numPeriods > 0, "Details missing");
         require(_numParticipants >= 2 && _numParticipants <= 10, "Invalid participants number");
 
@@ -197,6 +197,10 @@ contract EthDeliverer is Pausable, AccessControl {
         payable(msg.sender).transfer(amount);
 
         emit withdrawalSent(msg.sender, amount);
+    }
+
+    function amountWithdraw() public view returns(uint amount) {
+        amount = pendingWithdrawals[msg.sender];
     }
 
     //As the delivery has been already approved, it is necessary to create a proposal that have to be accepted by,

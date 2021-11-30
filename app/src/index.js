@@ -5,6 +5,7 @@ const App = {
   web3: null,
   account: null,
   meta: null,
+  isConnected: false,
 
   start: async function() {
     const { web3 } = this;
@@ -22,29 +23,49 @@ const App = {
 
       console.log('this.meta->', this.meta);
 
-      // get accounts
       const accounts = await web3.eth.getAccounts();
       this.account = accounts[0];
-
+    
       console.log('this.account->', this.account);
-
-      this.refreshBalance();
+    
+      if (this.account) {
+        this.updateAccount(this.account);
+        this.amountWithdraw();
+        this.setStatus('Wallet connected.');
+        this.isConnected = true;
+      } else {
+        this.setStatus('Good! Wallet detected. Now you need to connect it.');
+        this.isConnected = false;
+      }
+      
     } catch (error) {
       console.error("Could not connect to contract or chain.");
     }
   },
+  
+  updateAccount: function(_account) {
+    if (_account) {
+      document.getElementById('address').innerHTML = _account;
+    } 
+  },
 
-  refreshBalance: async function() {
-    const { getBalance } = this.meta.methods;
-    const balance = await getBalance(this.account).call();
+  amountWithdraw: async function() {
+    const { amountWithdraw } = this.meta.methods;
+    const _amount = await amountWithdraw().call();
 
-    const balanceElement = document.getElementsByClassName("balance")[0];
-    balanceElement.innerHTML = balance;
+    if (_amount) {
+      document.getElementById("withdrawal_amount").innerHTML = Web3.utils.fromWei(_amount, "ether");
+    }
   },
 
   createRequest: async function() {
     //e.preventDefault();
     //console.log('createRequest', e);
+
+    if (!this.isConnected) {
+      this.setStatus("Error. Wallet not connected!");
+      return null;
+    }
 
     const fields = document.querySelectorAll("#form1 input");
     console.log('fields->', fields);
@@ -77,6 +98,7 @@ const App = {
           if (fields[i].value) {
             if (fields[i].value == "0x0000000000000000000000000000000000000000" 
             || fields[i].value == this.account 
+            || !Web3.utils.isAddress(fields[i].value)
             || _listParticipants.indexOf(fields[i].value) >= 0) {
               fields[i].classList.add("invalid");
               isValid = false;
@@ -139,10 +161,25 @@ const App = {
    
   },
 
+  isRequestValid: function(ref) {
+    
+    let reqId = document.getElementById(ref);
+  
+    if (!reqId.checkValidity()) {
+      reqId.classList.add("invalid");
+      return null;
+    } else {
+      reqId.classList.remove("invalid");
+      return reqId.value;
+    }
+  },
+
   requestDetails: async function() {
     //e.preventDefault();
 
     console.log('requestDetails');
+
+    console.log(this.isRequestValid("reqId1"));
 
     let reqId = document.getElementById("reqId1");
 
@@ -157,26 +194,182 @@ const App = {
       console.log('deliveriesDetails->', deliveriesDetails);
 
       let _resp = await deliveriesDetails(reqId.value).call();
+      
       console.log('_resp->', _resp);
+      this.setStatus("Operation completed. No information found.");
 
-      if (_resp) {
+      if (_resp.numPeriods != "0") {
+
+        this.setStatus("Operation completed. Information found.");
+        let ethAmount = Web3.utils.fromWei(_resp.amountToSend, "ether");
+
+        let status = (_resp.isApproved) ? "Approved" : "Pending approval";
+        status = (_resp.amountToSend == "0") ? "Cancelled" : status;
 
         const { getParticipantsDelivery } = this.meta.methods;
 
         let _resp2 = await getParticipantsDelivery(reqId.value).call();
-        console.log('_resp->', _resp2);
+        console.log('_resp2->', _resp2);
 
+        let participants = "";
+
+        if (_resp2) {
+          for (let i = 0; i < _resp2.length; i++) {
+            participants = participants.concat(_resp2[i].participantAddress);
+            participants = participants.concat(_resp2[i].participantStatus == "1" ? " (Pending) ":" (Accepted) ");
+          }
+        }
         document.getElementById("query-1").classList.remove("d-none");
 
-        document.getElementById("query-11").innerHTML = _resp.amountToSend;
+        document.getElementById("query-11").innerHTML = ethAmount + " Eth";
         document.getElementById("query-12").innerHTML = _resp.numInitialBlock;
         document.getElementById("query-14").innerHTML = _resp.numPeriods;
         document.getElementById("query-15").innerHTML = _resp.numParticipants;
-        document.getElementById("query-16").innerHTML = _resp2.listParticipants;
+        document.getElementById("query-16").innerHTML = participants;
         document.getElementById("query-17").innerHTML = _resp.beneficiary
-        document.getElementById("query-18").innerHTML = (_resp.isApproved) ? "Approved" : "Pending approval";
+        document.getElementById("query-18").innerHTML = status;
       }
     }
+  },
+
+  approveParticipation: async function() {
+    console.log('approveParticipation');
+
+    const request = this.isRequestValid("reqId2");
+
+    if (request) {
+      console.log("Request valid->", request);
+
+      const { approveParticipation } = this.meta.methods;
+      await approveParticipation(request).send({ from: this.account }, 
+      (error, transactionHash) => {
+      if (error) {
+          console.error("Error approveParticipation: ", error);
+          showMessage("Error. Transaction not completed");
+          alert("Error. Transaction not completed.");
+      } else {
+          console.info("Transaction hash: ", transactionHash);
+          showMessage(`Request sent (${transactionHash}). Waiting for confirmation.`);
+      }
+    });
+
+    }
+
+  },
+
+  cancelDeliveryRequest: async function() {
+    console.log('cancelDeliveryRequest');
+
+    const request = this.isRequestValid("reqId3");
+
+    if (request) {
+      console.log("Request valid");
+
+      const { cancelDeliveryRequest } = this.meta.methods;
+      await cancelDeliveryRequest(request).send({ from: this.account }, 
+      (error, transactionHash) => {
+        if (error) {
+            console.error("Error cancelDeliveryRequest: ", error);
+            showMessage("Error. Transaction not completed");
+            alert("Error. Transaction not completed.");
+        } else {
+            console.info("Transaction hash: ", transactionHash);
+            showMessage(`Request sent (${transactionHash}). Waiting for confirmation.`);
+        }
+      });
+    }
+  },
+
+  withdraw: async function() {
+    console.log('withdraw');
+
+    this.setStatus("Initiating transaction... (please wait)");
+
+    const { withdraw } = this.meta.methods;
+    await withdraw().send({ from: this.account }, 
+      (error, transactionHash) => {
+      if (error) {
+          console.error("Error withdraw: ", error);
+          showMessage("Error. Transaction not completed");
+          alert("Error. Transaction not completed.");
+      } else {
+          console.info("Transaction hash: ", transactionHash);
+          showMessage(`Request sent (${transactionHash}). Waiting for confirmation.`);
+      }
+    });
+
+    this.amountWithdraw();
+
+  },
+
+  createCancelProposalDeliveryApproved: async function() {
+    console.log('createCancelProposalDeliveryApproved');
+
+    const request = this.isRequestValid("reqId4");
+
+    if (request) {
+      console.log("Request valid");
+
+      const { createCancelProposalDeliveryApproved } = this.meta.methods;
+      await createCancelProposalDeliveryApproved(request).send({ from: this.account }, 
+      (error, transactionHash) => {
+        if (error) {
+            console.error("Error createCancelProposalDeliveryApproved: ", error);
+            showMessage("Error. Transaction not completed");
+            alert("Error. Transaction not completed.");
+        } else {
+            console.info("Transaction hash: ", transactionHash);
+            showMessage(`Request sent (${transactionHash}). Waiting for confirmation.`);
+        }
+      });
+    }
+  },
+
+  approveCancelProposal: async function() {
+    console.log('approveCancelProposal');
+
+    let propId = document.getElementById("proposal");
+  
+    if (!propId.checkValidity()) {
+      propId.classList.add("invalid");
+      
+    } else {
+      propId.classList.remove("invalid");
+      
+      const { approveCancelProposal } = this.meta.methods;
+
+      await approveCancelProposal(propId.value).send({ from: this.account }, 
+      (error, transactionHash) => {
+        if (error) {
+            console.error("Error approveCancelProposal: ", error);
+            showMessage("Error. Transaction not completed");
+            alert("Error. Transaction not completed.");
+        } else {
+            console.info("Transaction hash: ", transactionHash);
+            showMessage(`Request sent (${transactionHash}). Waiting for confirmation.`);
+        }
+      });
+    }
+  },
+
+  deliveryAutomation: async function() {
+    console.log('deliveryAutomation');
+
+    this.setStatus("Initiating transaction... (please wait)");
+
+    const { deliveryAutomation } = this.meta.methods;
+
+    await deliveryAutomation().send({ from: this.account }, 
+      (error, transactionHash) => {
+      if (error) {
+          console.error("Error deliveryAutomation: ", error);
+          showMessage("Error. Transaction not completed");
+          alert("Error. Transaction not completed.");
+      } else {
+          console.info("Transaction hash: ", transactionHash);
+          showMessage(`Request sent (${transactionHash}). Waiting for confirmation.`);
+      }
+    });
   },
 
   sendCoin: async function() {
@@ -186,16 +379,17 @@ const App = {
     this.setStatus("Initiating transaction... (please wait)");
 
     const { sendCoin } = this.meta.methods;
+
     await sendCoin(receiver, amount).send({ from: this.account });
 
     this.setStatus("Transaction complete!");
-    this.refreshBalance();
   },
 
   setStatus: function(message) {
     const status = document.getElementById("status");
     status.innerHTML = message;
   },
+
 };
 
 //*
@@ -212,21 +406,9 @@ window.addEventListener("load", function() {
 
   console.log("Load");
 
-  // const submit1 = document.getElementById("submit1");
-  // submit1.addEventListener("click", App.createRequest);
-
-  // const submit2 = document.getElementById("submit2");
-  // submit2.addEventListener("click", App.requestDetails);
-
   if (typeof window.ethereum !== 'undefined') {
     console.log("Good! Wallet detected.");
-
-    console.log('IsConnected->', ethereum.isConnected());
-    if (ethereum.isConnected()) {
-      showMessage('Good! Wallet detected.');
-    } else {
-      showMessage('Good! Wallet detected. Now you need to connect it.');
-    }
+    //showMessage('Good! Wallet detected. Now you need to connect it.');
     
     const btnConnect = document.getElementById('btn-connect');
     console.log(btnConnect);
@@ -238,7 +420,7 @@ window.addEventListener("load", function() {
     
       if (res) {
         document.getElementById('address').innerHTML = res[0];
-        showMessage('Wallet connected.');
+        App.start();
       }
     }
     // use MetaMask's provider

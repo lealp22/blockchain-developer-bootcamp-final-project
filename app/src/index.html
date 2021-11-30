@@ -139,6 +139,23 @@
     .d-none {
       display: none;
     }
+
+    .query {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .query-labl {
+      font-weight: bold;
+      min-width: 30%;
+      margin: 0.5rem 0;
+    }
+
+    .query-fld {
+      min-width: 60%;
+      margin: 0.5rem 0;
+    }
   </style>
   <body>
     <head>
@@ -184,7 +201,8 @@
             class="participant"
             name="part1"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
             required
           />
@@ -193,7 +211,8 @@
             class="participant"
             name="part2"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
             required
           />
@@ -202,7 +221,8 @@
             class="participant"
             name="part3"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
           />
           <input
@@ -210,7 +230,8 @@
             class="participant"
             name="part4"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
           />
           <input
@@ -218,7 +239,8 @@
             class="participant"
             name="part5"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
           />
           <input
@@ -226,7 +248,8 @@
             class="participant"
             name="part6"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
           />
           <input
@@ -234,7 +257,8 @@
             class="participant"
             name="part7"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
           />
           <input
@@ -242,7 +266,8 @@
             class="participant"
             name="part8"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
           />
           <input
@@ -250,7 +275,8 @@
             class="participant"
             name="part9"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
           />
           <input
@@ -258,7 +284,8 @@
             class="participant-last"
             name="part10"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
           />
           <label for="beneficiary">
@@ -269,15 +296,13 @@
             name="beneficiary"
             id="beneficiary"
             placeholder="e.g. 0x0000000000000000000000000000000000000000"
-            size="42" maxlength="42"
+            size="42"
+            maxlength="42"
             pattern="^0x[a-fA-F0-9]{40}"
             required
           />
           <button class="btn" onclick="App.createRequest()">Send</button>
-          </div>
-          <!-- <input class="btn" type="submit" value="Send" onsubmit="App.createRequest()" /> -->
-          <!-- <input class="btn" type="submit" value="Send" id="submit1" /> -->
-
+        </div>
       </div>
     </div>
 
@@ -287,24 +312,23 @@
         <div>
           <label for="request">Request ID:</label>
           <input id="reqId1" type="input" name="request" required />
-          <!-- <input class="btn" type="submit" value="Send" id="submit2" /> -->
           <button class="btn" onclick="App.requestDetails()">Send</button>
         </div>
         <div class="query d-none" id="query-1">
-          <p><b>Amount:</b></p>
-          <span id="query-11"></span>
-          <p><b>Months to start:</b></p>
-          <span id="query-12"></span>
-          <p><b>Number of partial transfers:</b></p>
-          <span id="query-14"></span>
-          <p><b>Number of Participants:</b></p>
-          <span id="query-15"></span>
-          <p><b>Participants:</b></p>
-          <span id="query-16"></span>
-          <p><b>Beneficiary:</b></p>
-          <span id="query-17"></span>
-          <p><b>Status:</b></p>
-          <span id="query-18"></span>
+          <p class="query-labl">Amount:</p>
+          <p class="query-fld" id="query-11"></p>
+          <p class="query-labl">Start after block:</p>
+          <p class="query-fld" id="query-12"></p>
+          <p class="query-labl">Number of partial transfers:</p>
+          <p class="query-fld" id="query-14"></p>
+          <p class="query-labl">Number of Participants:</p>
+          <p class="query-fld" id="query-15"></p>
+          <p class="query-labl">Participants:</p>
+          <p class="query-fld" id="query-16"></p>
+          <p class="query-labl">Beneficiary:</p>
+          <p class="query-fld" id="query-17"></p>
+          <p class="query-labl">Status:</p>
+          <p class="query-fld" id="query-18"></p>
         </div>
       </div>
     </div>
@@ -312,11 +336,11 @@
     <div>
       <button class="accordion">Approve Request (Only participants)</button>
       <div class="panel">
-        <form>
+
           <label for="request">Request ID:</label>
-          <input type="input" name="request" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
+          <input id="reqId2" type="input" name="request" required />
+          <button class="btn" onclick="App.approveParticipation()">Send</button>
+
       </div>
     </div>
 
@@ -326,25 +350,11 @@
         participants)
       </button>
       <div class="panel">
-        <form>
+        
           <label for="request">Request ID:</label>
-          <input type="input" name="request" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
-      </div>
-    </div>
+          <input id="reqId3" type="input" name="request" required />
+          <button class="btn" onclick="App.cancelDeliveryRequest()">Send</button>
 
-    <div>
-      <button class="accordion">
-        Cancel Deferred Transfers Request (if not yet approved by all
-        participants)
-      </button>
-      <div class="panel">
-        <form>
-          <label for="request">Request ID:</label>
-          <input type="input" name="request" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
       </div>
     </div>
 
@@ -355,7 +365,7 @@
         <p id="withdrawal_amount">0.00</p>
         <p>Eth</p>
       </div>
-      <button class="btn">Withdrawal</button>
+      <button class="btn" onclick="App.withdraw()">Withdrawal</button>
     </div>
 
     <div>
@@ -368,11 +378,11 @@
         The proposal must be approved by at least 51% of the participants.
       </p>
       <div class="panel">
-        <form>
+        
           <label for="request">Request ID:</label>
-          <input type="input" name="request" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
+          <input id="reqId4" type="input" name="request" required />
+          <button class="btn" onclick="App.createCancelProposalDeliveryApproved()">Send</button>
+        
       </div>
     </div>
 
@@ -381,11 +391,9 @@
         Approve Cancel Proposal (Only participants)
       </button>
       <div class="panel">
-        <form>
           <label for="proposal">Proposal ID:</label>
-          <input type="input" name="proposal" required />
-          <input class="btn" type="submit" value="Send" />
-        </form>
+          <input type="input" name="proposal" id="proposal" required />
+          <button class="btn" onclick="App.approveCancelProposal()">Send</button>
       </div>
     </div>
 
@@ -396,35 +404,10 @@
         The sender will receive a 10% fee on all transfers made.
       </p>
       <div class="panel">
-        <button class="btn">Run</button>
+        <button class="btn" onclick="App.deliveryAutomation()">Run</button>
       </div>
     </div>
 
-    <h1>MetaCoin — Example Truffle Dapp</h1>
-    <p>
-      You have
-      <strong class="balance">loading...</strong>
-      META
-    </p>
-
-    <h1>Send MetaCoin</h1>
-
-    <label for="amount">Amount:</label>
-    <input type="text" id="amount" placeholder="e.g. 95" />
-
-    <label for="receiver">To address:</label>
-    <input
-      type="text"
-      id="receiver"
-      placeholder="e.g. 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"
-    />
-
-    <button onclick="App.sendCoin()">Send MetaCoin</button>
-
-    <p>
-      <strong>Hint:</strong>
-      open the browser developer console to view any errors and warnings.
-    </p>
     <script src="index.js"></script>
   </body>
 </html>
