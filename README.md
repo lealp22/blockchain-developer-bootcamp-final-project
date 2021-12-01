@@ -24,7 +24,7 @@ The main problem we face is the need for a trigger to execute the function in ch
 
 Some services could solve this, such as Keepers of ChainLink, but it is necessary to look into it more deeply.
 
-For this exercise, the processAutomation function has been included so that it can be called by anyone and, in return, the caller will get 1% of all transfers that are made.
+For this exercise, the _processAutomation_ function has been included so that it can be called by anyone and, in return, the caller will get 1% of all transfers that are completed.
 
 ## Directory structure ##
 
@@ -43,34 +43,39 @@ For this exercise, the processAutomation function has been included so that it c
   📝 1_initial_migration.js
   📝 2_deploy_contracts.js
 |_📁 test
+  📝 deferred_transfers.js
 ```
-
-# Basic Smart Contract Functions
-
-You can find them here: [smart-contract-functions.md](./smart-contract-functions.md)
 
 # Information related to the Smart Contract **DeferredTransfers.sol**:
 
+The Smart Contract is available in the Rinkeby network with the address [0x25ebCd76A15F982de93780CDfbd764075FFCE317](https://rinkeby.etherscan.io/address/0x25ebCd76A15F982de93780CDfbd764075FFCE317)
 
+Related to the final project:
 - [Avoiding Common Attacks](./avoiding_common_attacks.md)
 - [Design Pattern Decisions](./design_pattern_decisions.md)
+- [deployed_address.txt](./deployed_address.txt)
 
-### Directory structure ###
+**Steps to run the Dapp locally:**
 
 ```bash
-|_📁 app
-  |_📁 dist
-  |_📁 src
-    📝 index.html
-    📝 index.js
-|_📁 build
-  |_📁 contracts
-|_📁 contracts
-  📝 DeferredTransfers.sol
-  📝 Migrations.sol
-|_📁 migrations
-  📝 1_initial_migration.js
-  📝 2_deploy_contracts.js
-|_📁 test
+$ git clone https://github.com/lealp22/blockchain-developer-bootcamp-final-project.git
+$ CD blockchain-developer-bootcamp-final-project
 ```
+You can execute **ganache-cli** from this directory in order to have a local blockchain running in _http://locahost:8545_
+
+Once ganache-cli (or another local blockchain) is running, you must compile and migrate the smart contract (In the same directory, but in another terminal) with the command:
+
+```bash
+truffle migrate
+```
+When completed, you can execute the dapp with the next commands:
+```bash
+CD app
+npm install
+npm run dev
+```
+Take into account that you need to have **MetaMask** (or another wallet) connected to the local blockchain, running in port **8545** (http://127.0.0.1:8545)
+
+
+******
 Public Ethereum Address: 0xE838B9f35692c09500Db96a32D7faAA64f5DDEe2
