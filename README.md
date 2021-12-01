@@ -22,9 +22,9 @@ As a security measure, at least two more addresses will have to participate. The
 
 The main problem we face is the need for a trigger to execute the function in charge of validating if any automation should be carried out.
 
-Some services could solve this, such as Keepers of ChainLink, but it is necessary to look into it more deeply.
+Some services could solve this, such as Keepers of ChainLink or Gelato Network, but it is necessary to look into it more deeply.
 
-For this exercise, the _processAutomation_ function has been included so that it can be called by anyone and, in return, the caller will get 1% of all transfers that are completed.
+For this exercise, a _processAutomation_ function has been included so that it can be called by anyone and, in return, the caller will get 1% of all transfers that are completed.
 
 ## Directory structure ##
 
@@ -50,12 +50,23 @@ For this exercise, the _processAutomation_ function has been included so that it
 
 The Smart Contract is available in the Rinkeby network with the address [0x25ebCd76A15F982de93780CDfbd764075FFCE317](https://rinkeby.etherscan.io/address/0x25ebCd76A15F982de93780CDfbd764075FFCE317)
 
+You can try the dapp in:
+[https://lealp22.github.io/](https://lealp22.github.io/)
+
 Related to the final project:
 - [Avoiding Common Attacks](./avoiding_common_attacks.md)
 - [Design Pattern Decisions](./design_pattern_decisions.md)
 - [deployed_address.txt](./deployed_address.txt)
 
-**Steps to run the Dapp locally:**
+## Steps to run the Dapp locally:
+
+**Prerequisites:**
+- Node (npm)
+- Truffle
+- Ganache (_Ganache-cli_ or _truffle develop_ will be ok to run a blockchain locally)
+- Git
+
+**Steps:**
 
 ```bash
 $ git clone https://github.com/lealp22/blockchain-developer-bootcamp-final-project.git
@@ -66,16 +77,24 @@ You can execute **ganache-cli** from this directory in order to have a local blo
 Once ganache-cli (or another local blockchain) is running, you must compile and migrate the smart contract (In the same directory, but in another terminal) with the command:
 
 ```bash
-truffle migrate
+$ truffle migrate
 ```
 When completed, you can execute the dapp with the next commands:
 ```bash
-CD app
-npm install
-npm run dev
+$ CD app
+$ npm install
+$ npm run dev
 ```
 Take into account that you need to have **MetaMask** (or another wallet) connected to the local blockchain, running in port **8545** (http://127.0.0.1:8545)
 
+## Test ##
+
+There is a file _deferred_transfers.js_ with some tests related to the smart contract that must run without problem.
+
+It can be executed with the next command (from the directory where is the file _truffle-config.js_):
+```
+$ truffle test
+```
 
 ******
 Public Ethereum Address: 0xE838B9f35692c09500Db96a32D7faAA64f5DDEe2
