@@ -54,7 +54,9 @@ You can try the dapp in:
 [https://lealp22.github.io/](https://lealp22.github.io/)
 
 Or watch this video, a brief walking through this project:
-[usingdapp.mp4](./usingdapp.mp4)
+[usingdapp.mp4](https://www.dropbox.com/s/co6dltpxmteld5s/usingdapp.mp4?dl=0)
+
+(You can also download from here: [usingdapp.mp4](./usingdapp.mp4))
 
 Related to the final project:
 - [Avoiding Common Attacks](./avoiding_common_attacks.md)
