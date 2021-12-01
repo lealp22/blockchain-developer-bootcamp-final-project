@@ -53,6 +53,9 @@ The Smart Contract is available in the Rinkeby network with the address [0x25ebC
 You can try the dapp in:
 [https://lealp22.github.io/](https://lealp22.github.io/)
 
+Or watch this video, a brief walking through this project:
+[usingdapp.mp4](./usingdapp.mp4)
+
 Related to the final project:
 - [Avoiding Common Attacks](./avoiding_common_attacks.md)
 - [Design Pattern Decisions](./design_pattern_decisions.md)
